@@ -22,7 +22,7 @@ $user_id = $_SESSION['user_id']; // assuming you store logged-in user in session
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
         integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
     <style>
     body {
         font-family: "Arial";
@@ -115,7 +115,9 @@ $user_id = $_SESSION['user_id']; // assuming you store logged-in user in session
                                     </div>
                                     <div class="card-footer">
                                         <?php if ($alreadyOffered): ?>
-                                        <p class="text-muted flex justify-center items-center">You have already
+                                        <p
+                                            class="text-muted text-center d-flex align-items-center justify-content-center">
+                                            You have already
                                             submitted an offer for this
                                             proposal.</p>
                                         <?php else: ?>
