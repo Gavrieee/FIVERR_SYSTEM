@@ -1,12 +1,14 @@
 <?php require_once 'classloader.php'; ?>
 <?php
 if (!$userObj->isLoggedIn()) {
-  header("Location: login.php");
+    header("Location: login.php");
+    exit;
 }
 
-// if (!$userObj->isAdmin()) {
-//   header("Location: ../freelancer/index.php");
-// }
+if (!($userObj->isClient() || $userObj->isAdmin())) {
+    header('Location: ../freelancer/index.php');
+    exit;
+}
 
 $user_id = $_SESSION['user_id']; // assuming you store logged-in user in session
 ?>
@@ -24,13 +26,14 @@ $user_id = $_SESSION['user_id']; // assuming you store logged-in user in session
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <!-- <script src="https://cdn.tailwindcss.com"></script> -->
     <style>
-    body {
-        font-family: "Arial";
-    }
+        body {
+            font-family: "Arial";
+        }
     </style>
 </head>
 
 <body>
+    <?php require_once 'includes/prelude.php'; ?>
     <?php include 'includes/navbar.php'; ?>
     <div class="container-fluid">
         <div class="display-4 text-center">Hello there and welcome! <span
@@ -40,114 +43,120 @@ $user_id = $_SESSION['user_id']; // assuming you store logged-in user in session
             then press enter to save!</div>
         <div class="text-center">
             <?php
-      if (isset($_SESSION['message']) && isset($_SESSION['status'])) {
+            if (isset($_SESSION['message']) && isset($_SESSION['status'])) {
 
-        if ($_SESSION['status'] == "200") {
-          echo "<h1 style='color: green;'>{$_SESSION['message']}</h1>";
-        } else {
-          echo "<h1 style='color: red;'>{$_SESSION['message']}</h1>";
-        }
+                if ($_SESSION['status'] == "200") {
+                    echo "<h1 style='color: green;'>{$_SESSION['message']}</h1>";
+                } else {
+                    echo "<h1 style='color: red;'>{$_SESSION['message']}</h1>";
+                }
 
-      }
-      unset($_SESSION['message']);
-      unset($_SESSION['status']);
-      ?>
+            }
+            unset($_SESSION['message']);
+            unset($_SESSION['status']);
+            ?>
         </div>
         <div class="row justify-content-center">
             <div class="col-md-12">
                 <?php $getProposals = $proposalObj->getProposals(); ?>
                 <?php foreach ($getProposals as $proposal) { ?>
-                <div class="card shadow mt-4 mb-4">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h2><a
-                                        href="other_profile_view.php?user_id=<?php echo $proposal['user_id'] ?>"><?php echo $proposal['username']; ?></a>
-                                </h2>
-                                <img src="<?php echo '../images/' . $proposal['image']; ?>" class="img-fluid" alt="">
-                                <p class="mt-4 mb-4"><?php echo $proposal['description']; ?></p>
-                                <h4><i><?php echo number_format($proposal['min_price']) . " - " . number_format($proposal['max_price']); ?>
-                                        PHP</i></h4>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card" style="height: 600px;">
-                                    <div class="card-header">
-                                        <h2>All Offers</h2>
-                                    </div>
-                                    <div class="card-body overflow-auto">
-
-                                        <?php $getOffersByProposalID = $offerObj->getOffersByProposalID($proposal['proposal_id']); ?>
-                                        <?php $alreadyOffered = $offerObj->checkSubmittedOffer($user_id, $proposal['proposal_id']); ?>
-                                        <?php foreach ($getOffersByProposalID as $offer) { ?>
-                                        <div class="offer">
-                                            <h4><?php echo $offer['username']; ?> <span class="text-primary">(
-                                                    <?php echo $offer['contact_number'] ?? 'No number provided'; ?>
-                                                    )</span></h4>
-                                            <small><i><?php echo $offer['offer_date_added']; ?></i></small>
-                                            <p><?php echo $offer['description']; ?></p>
-
-                                            <?php if ($offer['user_id'] == $_SESSION['user_id']) { ?>
-                                            <form action="core/handleForms.php" method="POST">
-                                                <div class="form-group">
-                                                    <input type="hidden" class="form-control"
-                                                        value="<?php echo $offer['offer_id']; ?>" name="offer_id">
-                                                    <input type="submit" class="btn btn-danger" value="Delete"
-                                                        name="deleteOfferBtn">
-                                                </div>
-                                            </form>
-
-                                            <form action="core/handleForms.php" method="POST"
-                                                class="updateOfferForm d-none">
-                                                <div class="form-group">
-                                                    <label for="#">Description</label>
-                                                    <input type="text" class="form-control"
-                                                        value="<?php echo $offer['description']; ?>" name="description">
-                                                    <input type="hidden" class="form-control"
-                                                        value="<?php echo $offer['offer_id']; ?>" name="offer_id">
-                                                    <input type="submit" class="btn btn-primary form-control"
-                                                        name="updateOfferBtn">
-                                                </div>
-                                            </form>
-                                            <?php } ?>
-                                            <hr>
+                    <div class="card shadow mt-4 mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h2><a
+                                            href="other_profile_view.php?user_id=<?php echo $proposal['user_id'] ?>"><?php echo $proposal['username']; ?></a>
+                                    </h2>
+                                    <img src="<?php echo '../images/' . $proposal['image']; ?>" class="img-fluid" alt="">
+                                    <p class="mt-4 mb-4"><?php echo $proposal['description']; ?></p>
+                                    <p class="mt-2">
+                                        <?php echo $proposal['category_name'] . ' - ' . $proposal['subcategory_name']; ?>
+                                    </p>
+                                    <h4><i><?php echo number_format($proposal['min_price']) . " - " . number_format($proposal['max_price']); ?>
+                                            PHP</i></h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card" style="height: 600px;">
+                                        <div class="card-header">
+                                            <h2>All Offers</h2>
                                         </div>
-                                        <?php } ?>
-                                    </div>
-                                    <div class="card-footer">
-                                        <?php if ($alreadyOffered): ?>
-                                        <p
-                                            class="text-muted text-center d-flex align-items-center justify-content-center">
-                                            You have already
-                                            submitted an offer for this
-                                            proposal.</p>
-                                        <?php else: ?>
-                                        <form action="core/handleForms.php" method="POST">
-                                            <div class="form-group">
-                                                <label for="#">Description</label>
-                                                <input type="text" class="form-control" name="description">
-                                                <input type="hidden" class="form-control" name="proposal_id"
-                                                    value="<?php echo $proposal['proposal_id']; ?>">
-                                                <input type="submit" class="btn btn-primary float-right mt-4"
-                                                    name="insertOfferBtn">
-                                            </div>
-                                        </form>
-                                        <?php endif; ?>
+                                        <div class="card-body overflow-auto">
+
+                                            <?php $getOffersByProposalID = $offerObj->getOffersByProposalID($proposal['proposal_id']); ?>
+                                            <?php $alreadyOffered = $offerObj->checkSubmittedOffer($user_id, $proposal['proposal_id']); ?>
+                                            <?php foreach ($getOffersByProposalID as $offer) { ?>
+                                                <div class="offer">
+                                                    <h4><?php echo $offer['username']; ?> <span class="text-primary">(
+                                                            <?php echo $offer['contact_number'] ?? 'No number provided'; ?>
+                                                            )</span></h4>
+                                                    <small><i><?php echo $offer['offer_date_added']; ?></i></small>
+                                                    <p><?php echo $offer['description']; ?></p>
+
+                                                    <?php if ($offer['user_id'] == $_SESSION['user_id']) { ?>
+                                                        <form action="core/handleForms.php" method="POST">
+                                                            <div class="form-group">
+                                                                <input type="hidden" class="form-control"
+                                                                    value="<?php echo $offer['offer_id']; ?>" name="offer_id">
+                                                                <input type="submit" class="btn btn-danger" value="Delete"
+                                                                    name="deleteOfferBtn">
+                                                            </div>
+                                                        </form>
+
+                                                        <form action="core/handleForms.php" method="POST"
+                                                            class="updateOfferForm d-none">
+                                                            <div class="form-group">
+                                                                <label for="#">Description</label>
+                                                                <input type="text" class="form-control"
+                                                                    value="<?php echo $offer['description']; ?>" name="description">
+                                                                <input type="hidden" class="form-control"
+                                                                    value="<?php echo $offer['offer_id']; ?>" name="offer_id">
+                                                                <input type="submit" class="btn btn-primary form-control"
+                                                                    name="updateOfferBtn">
+                                                            </div>
+                                                        </form>
+                                                    <?php } ?>
+                                                    <hr>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
+                                        <div class="card-footer">
+                                            <?php if ($alreadyOffered): ?>
+                                                <p
+                                                    class="text-muted text-center d-flex align-items-center justify-content-center">
+                                                    You have already
+                                                    submitted an offer for this
+                                                    proposal.</p>
+                                            <?php else: ?>
+                                                <form action="core/handleForms.php" method="POST">
+                                                    <div class="form-group">
+                                                        <label for="#">Description</label>
+                                                        <input type="text" class="form-control" name="description">
+                                                        <input type="hidden" class="form-control" name="proposal_id"
+                                                            value="<?php echo $proposal['proposal_id']; ?>">
+                                                        <input type="submit" class="btn btn-primary float-right mt-4"
+                                                            name="insertOfferBtn">
+                                                    </div>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 <?php } ?>
             </div>
         </div>
     </div>
     <script>
-    $('.offer').on('dblclick', function(event) {
-        var updateOfferForm = $(this).find('.updateOfferForm');
-        updateOfferForm.toggleClass('d-none');
-    });
+        $('.offer').on('dblclick', function (event) {
+            var updateOfferForm = $(this).find('.updateOfferForm');
+            updateOfferForm.toggleClass('d-none');
+        });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous">
+        </script>
 </body>
 
 </html>

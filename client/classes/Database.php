@@ -73,9 +73,23 @@ class Database
      * Returns the ID of the last inserted row.
      * @return string
      */
-    protected function lastInsertId()
+
+    protected function normalizeName($name)
     {
-        return $this->pdo->lastInsertId();
+        // Trim spaces at start and end
+        $name = trim($name);
+
+        $name = preg_replace('/\s+/', '', $name); // remove ALL spaces
+
+        // Convert everything to lowercase first
+        $name = strtolower($name);
+
+        // Capitalize first letter of each word
+        $name = ucwords($name);
+
+        return $name;
     }
+
+
 }
 ?>

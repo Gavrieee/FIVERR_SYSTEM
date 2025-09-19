@@ -99,3 +99,57 @@ if (isset($_POST['deleteOfferBtn'])) {
 		header("Location: ../index.php");
 	}
 }
+
+if (isset($_POST['addCategoryBtn'])) {
+	$categoryName = $_POST['category'] ?? '';
+	$subcategories = $_POST['subcategories'] ?? [];
+
+	// Normalize category
+	$normalizedName = $categoryObj->normalizeName($categoryName);
+
+	// Normalize subcategories
+	$normalizedSubs = [];
+	foreach ($subcategories as $sub) {
+		$sub = trim($sub);
+		if ($sub !== '') {
+			$normalizedSubs[] = $categoryObj->normalizeName($sub);
+		}
+	}
+
+
+	$existingCategory = $categoryObj->getCategoryByName($normalizedName);
+
+	if ($existingCategory) {
+		// Category exists → just add new subcategories
+		$categoryId = $existingCategory['category_id'];
+
+		foreach ($normalizedSubs as $sub) {
+			// ✅ Check if subcategory already exists under this category
+			$existingSub = $categoryObj->getSubcategoryByName($categoryId, $sub);
+			if (!$existingSub) {
+				$categoryObj->addSubcategory($categoryId, $sub);
+			}
+		}
+
+		$_SESSION['message'] = "Category '$normalizedName' already exists. Added subcategories instead.";
+	} else {
+		// Create category and get its ID
+		if ($categoryObj->createCategory($normalizedName)) {
+			$categoryId = $categoryObj->lastInsertId();
+
+			// Add subcategories
+			foreach ($normalizedSubs as $sub) {
+				$sub = trim($sub);
+				if ($sub !== '') {
+					$categoryObj->addSubcategory($categoryId, $sub);
+				}
+			}
+			$_SESSION['message'] = "Category '$normalizedName' and its subcategories were added successfully.";
+		} else {
+			$_SESSION['message'] = "Failed to create category.";
+		}
+	}
+
+
+	header("Location: ../system.php");
+}
